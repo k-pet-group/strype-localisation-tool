@@ -18,7 +18,7 @@
         <br/>
         <button @click="validateLocale" :disabled="!canValidateLocale">OK</button>
     </div>
-  </template>
+</template>
 
 <script lang="ts">
 import { useStore } from "@/stores/store";
@@ -94,7 +94,9 @@ export default Vue.extend({
                 // When we have the data from GitHub we can...
                 // ... set the current locale
                 this.appStore.locale = (this.chosenLocale.length > 0) ? this.chosenLocale : this.newLocale.toLowerCase();
-                //.. add all missing labels/values in the translation state object + set the "isEmpty" field from locale to English (for us to know easily)
+                //... use the data provided by file if any 
+                this.addTranslationsFromFile();
+                //... add all missing labels/values in the translation state object + set the "isEmpty" field from locale to English (for us to know easily)
                 // (either because some don't exist in an existing locale, or because we're creating a new locale...)
                 this.fillMissingTranslationsAndSetIsEmpty();
                 // ... set the status as complete and allow for it to be close
@@ -197,6 +199,37 @@ export default Vue.extend({
                     this.appStore.isStatusError = true;
                     return false;
                 });
+        },
+
+        addTranslationsFromFile(atCurrentNode?: {inFromFile: Record<string, unknown>, inTranslations: TranslationLabelsTree}){
+            // The translation data is simple JSON formatted. We parse it and replace/add any translations it contains.
+            if(atCurrentNode){
+                Object.keys(atCurrentNode.inFromFile).forEach((entryKey) => {
+                    const entryValue = atCurrentNode.inFromFile[entryKey];
+                    const isEntryValueString = (typeof entryValue == "string");
+                    // This key entry doesn't exist: we can add with its potential children.
+                    // If it already exists in the translations: we either replace the value if we're on a leaf
+                    // or continue parsing if we are not.
+                    const entryKeyExistsInTranslations = !!atCurrentNode.inTranslations[entryKey];
+                    if(!entryKeyExistsInTranslations || isEntryValueString){
+                        if(entryKeyExistsInTranslations){
+                            atCurrentNode.inTranslations[entryKey].value = entryValue as string;
+                        }
+                        else {
+                            const value = (isEntryValueString)
+                                ? {value: entryValue, isEmpty: false} 
+                                : parseJSONToTranslationTree(entryValue as {[key: string]: any});
+                            this.$set(atCurrentNode.inTranslations, entryKey, value);
+                        }
+                    }
+                    else{
+                        this.addTranslationsFromFile({inFromFile: atCurrentNode.inFromFile[entryKey] as Record<string, unknown>, inTranslations: atCurrentNode.inTranslations[entryKey].value as TranslationLabelsTree});
+                    }
+                });        
+            }
+            else{
+                this.addTranslationsFromFile({inFromFile: this.appStore.translationsFromFile, inTranslations: this.appStore.translations});
+            }
         },
 
         fillMissingTranslationsAndSetIsEmpty(params?: { forKey: string, localeParentTreeNode: TranslationLabelsTree, englishParentTreeNode: TranslationLabelsTree}): boolean{
