@@ -26,7 +26,6 @@ import LocaleSelectionDisplay from "@/components/LocaleSelectionDisplay.vue";
 import LocalesComparisonDisplay from "@/components/LocalesComparisonDisplay.vue";
 import type TranslationLabelTreeNodeComponent from "@/components/TranslationLabelTreeNode.vue";
 import GenerateLocaleFilesDisplay from "@/components/GenerateLocaleFilesDisplay.vue";
-import { IS_LOCAL_STANDALONE_TEST_VERSION } from "./main";
 
 export default Vue.extend({
     name: "App",
@@ -42,7 +41,7 @@ export default Vue.extend({
         ...mapStores(useStore),
 
         isLocalTestVersion(): boolean {
-            return IS_LOCAL_STANDALONE_TEST_VERSION;
+            return import.meta.env.VITE_IS_LOCAL_STANDALONE_TEST_VERSION == "true";
         },
     },
 

@@ -26,7 +26,7 @@ import { mapStores } from "pinia";
 import { CustomEventTypes, parseJSONToTranslationTree } from "@/helpers/common";
 import type { TranslationLabelsTree } from "@/helpers/types";
 import Vue from "vue";
-import { IS_LOCAL_STANDALONE_TEST_VERSION, LOCALE_FOR_LOCAL_STANDALONE_TEST } from "@/main";
+import { LOCALE_FOR_LOCAL_STANDALONE_TEST } from "@/main";
 import testLocalData from "@/assets/test_local_data.json";
 
 export default Vue.extend({
@@ -43,7 +43,7 @@ export default Vue.extend({
         ...mapStores(useStore),
 
         isLocalTestVersion(): boolean {
-            return IS_LOCAL_STANDALONE_TEST_VERSION;
+            return import.meta.env.VITE_IS_LOCAL_STANDALONE_TEST_VERSION == "true";
         },
     },
 
