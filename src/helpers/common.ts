@@ -5,13 +5,21 @@ import Vue from "vue";
 
 // List of custom events sent by different parts of the app
 export enum CustomEventTypes {
-    checkGitHubRepBasicsRequested = "StrypeLocalesMgrEvt1",
-    localeSelectionRequested = "StrypeLocalesMgrEvt2",
-    showLocalesComparisonToolRequested = "StrypeLocalesMgrEvt3",
-    statusDisplayOffRequested = "StrypeLocalesMgrEvt4",
-    showGenerateLocaleFilesRequested = "StrypeLocalesMgrEvt5",
-    generateLocalFilesDisplayOffRequested = "StrypeLocalesMgrEvt6",
+    checkGitHubRepBasicsRequested = "StrypeLocalisationToolEvt1",
+    localeSelectionRequested = "StrypeLocalisationToolEvt2",
+    showLocalesComparisonToolRequested = "StrypeLocalisationToolEvt3",
+    statusDisplayOffRequested = "StrypeLocalisationToolEvt4",
+    showGenerateLocaleFilesRequested = "StrypeLocalisationToolEvt5",
+    generateLocalFilesDisplayOffRequested = "StrypeLocalisationToolEvt6",
+    showTranslationsFilesUploaderRequested = "StrypeLocalisationToolEvt7",
+    proceedWithTranslationsFromFileRequested = "StrypeLocalisationToolEvt8",
 }
+
+export const isLocaleNameValid = (locale: string): boolean => {
+    // This method checks the validatity of a locale (in Strype we expect them as a 2 chars code)
+    return /^[a-z]{2}$/.test(locale.toLowerCase());
+};
+
 
 /* Part handling the conversion between the translation JSON files and the internal tree object
  * used in this app (that also carries information the node visibility in the UI).

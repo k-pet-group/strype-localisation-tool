@@ -1,6 +1,9 @@
 <template>
     <div class="locale-selection-container">
-        <div v-if="!isLocalTestVersion">
+        <div v-if="isLocalTestVersion">
+            <em>{{ `(Local test version: the locale is set to "${chosenLocale}"!)`}}</em>
+        </div>
+        <div v-else>
             <label for="localeSelect">Choose a locale:</label>
             <select id="localeSelect" v-model="chosenLocale">
                 <option v-for="locale in appStore.locales" :key="locale" :value="locale">
@@ -8,22 +11,19 @@
                 </option>
             </select>
             <br/>
-            <span>OR give a new locale: </span>&nbsp;<input type="text" v-model="newLocale"/>
-            <br/>
-            <span class="not-implemented">OR use some existing translation files</span><span class="info-roundel" title="The tool will detect the locale and translation group (e.g. 'main' or 'mb') from your files.&#10;If the locale exists already in Strype, the tool will first retrieve its content online then apply your files' changes.">i</span><span>(not yet available)</span>
+            <span>OR give a new locale:</span><input type="text" v-model="newLocale"/>
         </div>
-        <div v-else>
-            <span>Local test version: the locale is set to German</span>
-        </div>
+        <span>{{ `${(isLocalTestVersion) ? "Optionally" : "OR"} use some existing translations files` }}</span>
+        <button id="pickTranslationsFilesButton" @click="pickTranslationFiles">Pick files</button>
         <br/>
-        <button @click="validateLocale" :disabled="!canValidateLocale">OK</button>
+        <button id="validateLocaleButton" @click="validateLocale" :disabled="!canValidateLocale">OK</button>
     </div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/stores/store";
 import { mapStores } from "pinia";
-import { CustomEventTypes, parseJSONToTranslationTree } from "@/helpers/common";
+import { CustomEventTypes, isLocaleNameValid, parseJSONToTranslationTree } from "@/helpers/common";
 import type { TranslationLabelsTree } from "@/helpers/types";
 import Vue from "vue";
 import { LOCALE_FOR_LOCAL_STANDALONE_TEST } from "@/main";
@@ -35,7 +35,6 @@ export default Vue.extend({
     mounted(){
         if(this.isLocalTestVersion){
             this.chosenLocale = LOCALE_FOR_LOCAL_STANDALONE_TEST;
-            this.validateLocale();
         }
     },
 
@@ -72,7 +71,7 @@ export default Vue.extend({
                 // A new locale cannot be an existing locale
                 // Note sure about that, but for now we only accept locales as a 2 chars code
                 // (is that actually a requirement in Strype?)
-                this.canValidateLocale = (/^[a-z]{2}$/.test(newValue.toLowerCase()) && !this.appStore.locales.includes(newValue.toLowerCase()));
+                this.canValidateLocale = (isLocaleNameValid(newValue) && !this.appStore.locales.includes(newValue.toLowerCase()));
             }
             else{
                 this.canValidateLocale = (this.newLocale.length > 0);
@@ -81,11 +80,22 @@ export default Vue.extend({
     },
 
     methods: {
-        validateLocale() {
+        validateLocale(forcedLocale?: string) {
             // A locale has been chosen or created and if created value, we have a 2 chars code (see in watcher)
             // We retrieve the English data, and if chose value, the other locale.
             // And if all good, we save the locale to work with in the state.
             const localesToFetch = ["en"];
+            
+            // This is used for proceeding with the locale/translations retrieved when uploading translations files.
+            if(forcedLocale){
+                if(this.appStore.locales.includes(forcedLocale)){
+                    this.chosenLocale = forcedLocale;
+                }
+                else{
+                    this.newLocale = forcedLocale;
+                }
+            }
+
             if(this.chosenLocale.length > 0) {
                 localesToFetch.push(this.chosenLocale);
             }
@@ -298,6 +308,10 @@ export default Vue.extend({
                 }
             });
         },
+
+        pickTranslationFiles() {
+            this.$emit(CustomEventTypes.showTranslationsFilesUploaderRequested, {detail: true});
+        },
     },
 });
 </script>
@@ -311,34 +325,26 @@ export default Vue.extend({
     background-color: #afd9ec;
 }
 
-.locale-selection-container > select {
-    margin-left: 10px;
+.locale-selection-container > div > select,
+.locale-selection-container > div > input {
+    margin-left: 5px;
 }
 
-.locale-selection-container > input {
+.locale-selection-container > div > input {
     margin-top: 2px;
 }
 
-.locale-selection-container > button {
+.locale-selection-container > div > span {
+    vertical-align: middle;
+}
+
+#pickTranslationsFilesButton {
+    margin-left: 5px;
+    margin-top: 2px;
+}
+
+#validateLocaleButton {
     margin-top: 10px;
 }
-
-.not-implemented {
-    color: #aaa;
-}
-
-.info-roundel {    
-  display: inline-block;
-  margin: 2px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  text-align: center;
-  line-height: 24px;
-  font-weight: bold;  
-}
-
 </style>
 
