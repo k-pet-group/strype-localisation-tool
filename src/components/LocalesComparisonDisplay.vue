@@ -30,7 +30,7 @@
             </div>            
         </div>
     </div>
-  </template>
+</template>
 
 <script lang="ts">
 import { useStore } from "@/stores/store";

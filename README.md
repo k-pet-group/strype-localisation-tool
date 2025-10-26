@@ -40,13 +40,18 @@ Progress is shown in the status information box. Translators can continue toward
 The locale can be selected inside the locale selection box once the tool is ready (see previous section).
 
 Options are:\
-<img src="./doc-images/locale-selection.png" width="600" >
+<img src="./doc-images/locale-selection.png" width="400" >
 - 1: selecting a locale already supported by Strype,
 - 2: typing a new locale that Strype does not support yet (as a two-letter language code, different from the existing locales available in option 1),
-- 3: getting the locale and the translations from existing files, the files' name and content must comply with the convention used by Strype for the translations file _(this option will be available in a future version of the tool)_.
+- 3: getting the locale and the translations from existing files, the files' name and content must comply with the convention used by Strype for the translations file.
 
 >[!TIP]
->Option 3 is useful when you need to load work in progress from the files.
+>Option 3 is useful when you need to load work in progress from the files.\
+When clicking on the "Pick files" button, the locale selection box will be replaced by a file uploader. \
+__The locale will be detected in the first file upload's name__. \
+Translators can upload files for the translation target group they want. \
+Confirmation of the uploads will trigger the tool to proceeed with the actions described below, but the uploaded file content will be used in the translations. \
+Therefore, it the responsability of the translators to __make sure their uploaded files' content will not overwrite translations already in Strype that could have been recently updated by someone else__.
 
 When a locale is selected with option 1, the tool will retrieve the translations from the Strype GitHub repository and show progress in the status box.
 

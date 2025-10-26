@@ -10,7 +10,8 @@
     <hr/>
     <span v-if="isLocalTestVersion" class="important-notice-msg">THIS IS A TEST VERSION WITH STANDALONE FILE ACCESS.</span>
     <StatusDisplay v-show="showStatusDisplay" :show-close="showStatusDisplayClose" @[CustomEventTypes.checkGitHubRepBasicsRequested]="checkGithubRepContent" @[CustomEventTypes.statusDisplayOffRequested]="showStatusDisplay=false;explicitHideStatusDisplay=true;" />
-    <LocaleSelectionDisplay v-if="showLocaleSelectionDisplay" @[CustomEventTypes.showLocalesComparisonToolRequested]="onRequestShowLocalesCompTool" />
+    <LocaleSelectionDisplay v-show="showLocaleSelectionDisplay" ref="localeSelectionDisplay" @[CustomEventTypes.showLocalesComparisonToolRequested]="onRequestShowLocalesCompTool" @[CustomEventTypes.showTranslationsFilesUploaderRequested]="onRequestShowTranslationsFileUploader" />
+    <TranslationsFileUploaderDisplay v-if="showTranslationsFileUploaderDisplay" @[CustomEventTypes.showTranslationsFilesUploaderRequested]="onRequestShowTranslationsFileUploader" @[CustomEventTypes.proceedWithTranslationsFromFileRequested]="proceedWithTranslationsFromFile" />
     <LocalesComparisonDisplay v-if="showLocalesCompDisplay" @[CustomEventTypes.showGenerateLocaleFilesRequested] = "onRequestShowHideGenerateFiles(true)" />
     <GenerateLocaleFilesDisplay v-if="showGenerateLocaleFilesDisplay" @[CustomEventTypes.generateLocalFilesDisplayOffRequested] = "onRequestShowHideGenerateFiles(false)"/>
   </div> 
@@ -23,10 +24,10 @@ import { CustomEventTypes, getReferencedTranslationTreeDisplayComponent, getTran
 import Vue from "vue";
 import StatusDisplay from "./components/StatusDisplay.vue";
 import LocaleSelectionDisplay from "@/components/LocaleSelectionDisplay.vue";
+import TranslationsFileUploaderDisplay from "@/components/TranslationsFileUploaderDisplay.vue";
 import LocalesComparisonDisplay from "@/components/LocalesComparisonDisplay.vue";
 import type TranslationLabelTreeNodeComponent from "@/components/TranslationLabelTreeNode.vue";
 import GenerateLocaleFilesDisplay from "@/components/GenerateLocaleFilesDisplay.vue";
-import { IS_LOCAL_STANDALONE_TEST_VERSION } from "./main";
 
 export default Vue.extend({
     name: "App",
@@ -34,6 +35,7 @@ export default Vue.extend({
     components: {
         StatusDisplay,
         LocaleSelectionDisplay,
+        TranslationsFileUploaderDisplay,
         LocalesComparisonDisplay,
         GenerateLocaleFilesDisplay,
     },
@@ -42,7 +44,7 @@ export default Vue.extend({
         ...mapStores(useStore),
 
         isLocalTestVersion(): boolean {
-            return IS_LOCAL_STANDALONE_TEST_VERSION;
+            return import.meta.env.VITE_IS_LOCAL_STANDALONE_TEST_VERSION == "true";
         },
     },
 
@@ -54,6 +56,7 @@ export default Vue.extend({
             explicitHideStatusDisplay: false,
             showLocaleSelectionDisplay: false,
             showLocalesCompDisplay: false,
+            showTranslationsFileUploaderDisplay: false,
             showGenerateLocaleFilesDisplay: false,
         };
     },
@@ -61,7 +64,7 @@ export default Vue.extend({
     methods: {
         checkGithubRepContent() {
             if(this.isLocalTestVersion){
-                this.appStore.status = "Waiting for locale selection...";
+                this.appStore.status = "Continue or use data file ...";
                 this.showLocaleSelectionDisplay = true;
                 return;
             }
@@ -113,10 +116,23 @@ export default Vue.extend({
                 });
         },
 
+        onRequestShowTranslationsFileUploader(event: CustomEvent<boolean>){
+            const isRequestShow = event.detail;
+            this.showLocaleSelectionDisplay = !isRequestShow;
+            this.showTranslationsFileUploaderDisplay = isRequestShow;            
+        },
+
+        proceedWithTranslationsFromFile(event: CustomEvent<string>) {
+            // We sent the locale detected by the TranslationsFileUploadDisplay component directly to the locale selection component
+            // so it can prepare the translations to be displayed.
+            this.showTranslationsFileUploaderDisplay = false;
+            (this.$refs.localeSelectionDisplay as InstanceType<typeof LocaleSelectionDisplay>).validateLocale(event.detail);
+        },
+
         onRequestShowLocalesCompTool(){
-            this.showStatusDisplayClose=true; 
-            this.showLocaleSelectionDisplay=false;
-            this.showLocalesCompDisplay=true;
+            this.showStatusDisplayClose = true; 
+            this.showLocaleSelectionDisplay = false;
+            this.showLocalesCompDisplay = true;
             // Set the first entry of the translations as the selected entry
             this.$nextTick(() => {
                 (getReferencedTranslationTreeDisplayComponent()?.$refs[getTranslationLabelNodeComponentRef("0")] as InstanceType<typeof TranslationLabelTreeNodeComponent>[])[0]
