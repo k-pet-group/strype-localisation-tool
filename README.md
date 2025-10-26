@@ -50,7 +50,7 @@ Options are:\
 When clicking on the "Pick files" button, the locale selection box will be replaced by a file uploader. \
 __The locale will be detected in the first file upload's name__. \
 Translators can upload files for the translation target group they want. \
-Confirmation of the uploads will trigger the tool to proceeed with the actions described below, but the uploaded file content will be used in the translations. \
+Confirmation of the uploads will trigger the tool to proceed with the actions described below, but the uploaded file content will be used in the translations. \
 Therefore, it the responsability of the translators to __make sure their uploaded files' content will not overwrite translations already in Strype that could have been recently updated by someone else__.
 
 When a locale is selected with option 1, the tool will retrieve the translations from the Strype GitHub repository and show progress in the status box.
