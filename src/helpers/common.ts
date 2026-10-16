@@ -20,6 +20,33 @@ export const isLocaleNameValid = (locale: string): boolean => {
     return /^[a-z]{2}$/.test(locale.toLowerCase());
 };
 
+/* Part handling the translations files picked by the user */
+export const parseTranslationsFileName = (fileName: string): {locale: string, translationGroup: string} => {
+    // A Strype translations file name is formatted as "<locale>_<translation group>.json"
+    const fileNameSplits = fileName.replace(/\.json$/,"").split("_");
+    if(fileNameSplits.length != 2 || !fileName.endsWith(".json")){
+        throw new Error(`The file name "${fileName}" isn't following the format expected for a Strype localisation file!`);
+    }
+    return {locale: fileNameSplits[0].toLowerCase(), translationGroup: fileNameSplits[1]};
+};
+
+export const readFileContent = (file: File): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onload =  (evt) => {
+            const text = evt.target?.result;
+            if(typeof text === "string"){
+                resolve(text);
+            }
+            else {
+                reject("the file content cannot be interpreted as a JSON content file");
+            }
+        };
+        fileReader.readAsText(file, "UTF-8");
+    });
+};
+/* end of part about translations files picked by the user */
+
 
 /* Part handling the conversion between the translation JSON files and the internal tree object
  * used in this app (that also carries information the node visibility in the UI).
@@ -120,3 +147,23 @@ export const cleanTranslationsLabelTreeRefs = (): Promise<void> => {
     });    
 };
 /* end dealing with refs */
+/* Part for handling the whitespaces at the edges of a label value (they are invisible in HTML) */
+export interface EdgeWhitespacesSplitValue {
+    leading: string,
+    core: string,
+    trailing: string,
+}
+
+export const splitEdgeWhitespaces = (value: string): EdgeWhitespacesSplitValue => {
+    // Note: the "\n" have been replaced by ⏎ before we get here, so they are not considered as whitespaces.
+    const match = value.match(/^(\s*)([\s\S]*?)(\s*)$/) as RegExpMatchArray;
+    return {leading: match[1], core: match[2], trailing: match[3]};
+};
+
+export const describeEdgeWhitespaces = (whitespaces: string, position: "leading" | "trailing"): string => {
+    // Gives a human readable description, like "2 trailing spaces" (if there are other whitespaces than spaces, we use a generic term)
+    const count = whitespaces.length;
+    const term = (/^ *$/.test(whitespaces)) ? "space" : "whitespace character";
+    return `${count} ${position} ${term}${(count != 1) ? "s" : ""}`;
+};
+/* end dealing with whitespaces at the edges */

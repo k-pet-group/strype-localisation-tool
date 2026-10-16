@@ -4,6 +4,25 @@
             <em>{{ `(Local test version: the locale is set to "${chosenLocale}"!)`}}</em>
         </div>
         <div v-else>
+            <div class="english-reference-container">
+                <span>English reference:</span>
+                <input id="englishReferenceGitHubRadio" type="radio" :value="false" v-model="appStore.isEnglishReferenceFromLocalFiles"/>
+                <label for="englishReferenceGitHubRadio">Strype on GitHub (main branch)</label>
+                <input id="englishReferenceLocalRadio" type="radio" :value="true" v-model="appStore.isEnglishReferenceFromLocalFiles"/>
+                <label for="englishReferenceLocalRadio">Local files</label>
+                <template v-if="appStore.isEnglishReferenceFromLocalFiles">
+                    <button id="pickEnglishFilesButton" title="Pick the English translations files (en_<translation group>.json)." @click="pickEnglishFiles">Pick English files</button>
+                    <input type="file" accept=".json" multiple ref="englishFilesInput" @change="onSelectedEnglishFiles" />
+                    <div v-for="tg in englishTranslationGroupsFromFiles" :key="`englishFromFile_${tg}`">
+                        <span>{{ `en_${tg}.json` }}</span>
+                        <div class="cross-symbol-container" @click="removeEnglishFileForTG(tg)">
+                            <span title="Remove this file from the English reference.">❌</span>
+                        </div>
+                    </div>
+                    <div v-if="englishTranslationGroupsFromFiles.length == 0"><em>No English files picked yet.</em></div>
+                </template>
+            </div>
+            <hr class="english-reference-separator"/>
             <label for="localeSelect">Choose a locale:</label>
             <select id="localeSelect" v-model="chosenLocale">
                 <option v-for="locale in appStore.locales" :key="locale" :value="locale">
@@ -14,16 +33,16 @@
             <span>OR give a new locale:</span><input type="text" v-model="newLocale"/>
         </div>
         <span>{{ `${(isLocalTestVersion) ? "Optionally" : "OR"} use some existing translations files` }}</span>
-        <button id="pickTranslationsFilesButton" @click="pickTranslationFiles">Pick files</button>
+        <button id="pickTranslationsFilesButton" @click="pickTranslationFiles" :disabled="isEnglishReferenceMissing">Pick files</button>
         <br/>
-        <button id="validateLocaleButton" @click="validateLocale" :disabled="!canValidateLocale">OK</button>
+        <button id="validateLocaleButton" @click="validateLocale()" :disabled="!canValidateLocale || isEnglishReferenceMissing">OK</button>
     </div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/stores/store";
 import { mapStores } from "pinia";
-import { CustomEventTypes, isLocaleNameValid, parseJSONToTranslationTree } from "@/helpers/common";
+import { CustomEventTypes, isLocaleNameValid, parseJSONToTranslationTree, parseTranslationsFileName, readFileContent } from "@/helpers/common";
 import type { TranslationLabelsTree } from "@/helpers/types";
 import Vue from "vue";
 import { LOCALE_FOR_LOCAL_STANDALONE_TEST } from "@/main";
@@ -43,6 +62,15 @@ export default Vue.extend({
 
         isLocalTestVersion(): boolean {
             return import.meta.env.VITE_IS_LOCAL_STANDALONE_TEST_VERSION == "true";
+        },
+
+        englishTranslationGroupsFromFiles(): string[] {
+            return Object.keys(this.appStore.englishFromLocalFiles).sort();
+        },
+
+        isEnglishReferenceMissing(): boolean {
+            // When the English reference is to be taken from local files, we need at least one file.
+            return this.appStore.isEnglishReferenceFromLocalFiles && this.englishTranslationGroupsFromFiles.length == 0;
         },
     },
 
@@ -110,7 +138,7 @@ export default Vue.extend({
                 // (either because some don't exist in an existing locale, or because we're creating a new locale...)
                 this.fillMissingTranslationsAndSetIsEmpty();
                 // ... set the status as complete and allow for it to be close
-                this.appStore.status = "Ready for you to translate!";
+                this.appStore.status = "Ready for you to translate!" + ((this.appStore.isEnglishReferenceFromLocalFiles) ? " (English reference from local files)" : "");
                 this.appStore.isStatusFinshed = true;
                 // ... emit event to show the translation tool
                 this.$emit(CustomEventTypes.showLocalesComparisonToolRequested);
@@ -121,7 +149,10 @@ export default Vue.extend({
                 localeFetchDone();
             }
             else{
-                this.retrieveLocale(localesToFetch[0], true).then((firstRetrieveOK) => {
+                const englishRetrieval = (this.appStore.isEnglishReferenceFromLocalFiles)
+                    ? Promise.resolve(this.prepareEnglishFromLocalFiles())
+                    : this.retrieveLocale(localesToFetch[0], true);
+                englishRetrieval.then((firstRetrieveOK) => {
                     if(firstRetrieveOK){
                         if(localesToFetch.length > 1){
                             this.retrieveLocale(localesToFetch[1], false).then((secondRetrieveOK) => {
@@ -309,6 +340,61 @@ export default Vue.extend({
             });
         },
 
+        prepareEnglishFromLocalFiles(): boolean {
+            // The English reference is entirely taken from the files picked by the user (nothing is retrieved from GitHub for English):
+            // the translation groups are those of the picked files. The content has been parsed as JSON when the files were picked.
+            this.appStore.status = "Preparing English (reference) data from local files...";
+            try{
+                this.englishTranslationGroupsFromFiles.forEach((translationGroup) => {
+                    this.appStore.translationGroups.push(translationGroup);
+                    this.$set(this.appStore.englishContent, translationGroup, {value: parseJSONToTranslationTree(this.appStore.englishFromLocalFiles[translationGroup] as {[key: string]: any}).value});
+                });
+                return true;
+            }
+            catch{
+                this.appStore.status = "Error preparing the English (reference) data from the local files.\nCheck the files and reload this page to try again.";
+                this.appStore.isStatusError = true;
+                return false;
+            }
+        },
+
+        pickEnglishFiles() {
+            (this.$refs.englishFilesInput as HTMLInputElement)?.click();
+        },
+
+        async onSelectedEnglishFiles() {
+            const filesInput = this.$refs.englishFilesInput as HTMLInputElement;
+            const errors = [] as string[];
+            for(const file of Array.from(filesInput.files ?? [])){
+                try{
+                    const {locale, translationGroup} = parseTranslationsFileName(file.name);
+                    if(locale != "en"){
+                        throw new Error(`The file "${file.name}" is not an English translations file.`);
+                    }
+                    if(this.appStore.englishFromLocalFiles[translationGroup] != undefined){
+                        throw new Error(`An English file has already been picked for the translation group "${translationGroup}".`);
+                    }
+                    const jsonFileContent = JSON.parse(await readFileContent(file));
+                    if(typeof jsonFileContent != "object" || jsonFileContent == null || Array.isArray(jsonFileContent)){
+                        throw new Error(`The file "${file.name}" doesn't contain translations.`);
+                    }
+                    this.$set(this.appStore.englishFromLocalFiles, translationGroup, jsonFileContent);
+                }
+                catch(error){
+                    errors.push((error instanceof SyntaxError) ? `The file "${file.name}" isn't a valid JSON file.` : String((error as Error).message ?? error));
+                }
+            }
+            //reset the input file element value to empty (so further changes can be notified)
+            filesInput.value = "";
+            if(errors.length > 0){
+                alert(errors.join("\n"));
+            }
+        },
+
+        removeEnglishFileForTG(translationGroup: string) {
+            this.$delete(this.appStore.englishFromLocalFiles, translationGroup);
+        },
+
         pickTranslationFiles() {
             this.$emit(CustomEventTypes.showTranslationsFilesUploaderRequested, {detail: true});
         },
@@ -338,6 +424,17 @@ export default Vue.extend({
     vertical-align: middle;
 }
 
+.english-reference-separator {
+    border: none;
+    border-top: 1px solid black;
+    margin: 10px 0px;
+}
+
+.english-reference-container > input[type=file] {
+    display: none;
+}
+
+#pickEnglishFilesButton,
 #pickTranslationsFilesButton {
     margin-left: 5px;
     margin-top: 2px;

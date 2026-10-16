@@ -2,7 +2,7 @@
   <div class="generate-files-container functional-container">
     <span class="close-btn" @click="onCloseStatusDisplay">×</span>
     <input id="keepOrphanTranslationsCheckBox" type="checkbox" v-model="keepOrphanTranslations" />
-    <label for="keepOrphanTranslationsCheckBox">Keep translations whose key no longer exists in English ("orphan translations")</label>
+    <label for="keepOrphanTranslationsCheckBox">{{ `Keep translations whose key no longer exists in English${(appStore.isEnglishReferenceFromLocalFiles) ? " (as given by the local files)" : ""} ("orphan translations")` }}</label>
     <br/><br/>
     <span>Translation group to generate:</span>
     <div v-for="tg in appStore.translationGroups" :key="'generate_for_'+tg" class="translation-groups-container">
@@ -70,7 +70,7 @@ export default Vue.extend({
                     }
                     else{
                         // We have a string value that is not empty, we make sure we remove all the ⏎ we added inside the labels for visibility
-                        treeAtLevel[oneTreeLevelKey].value = (treeAtLevel[oneTreeLevelKey].value as string).replace("⏎", "\n");
+                        treeAtLevel[oneTreeLevelKey].value = (treeAtLevel[oneTreeLevelKey].value as string).replace(/⏎/g, "\n");
                     }
                 });                
             };

@@ -62,6 +62,14 @@ For all options, the tool is ready to show the translations (in the [translation
 >The tool is taking care of providing empty translation strings for all the missing translations from the English reference to the current locale.\
 >See next section for more details on how to see these "missing translations".
 
+>[!NOTE]
+**By default, the English translations used as the reference are retrieved from the main branch of the Strype GitHub repository**.
+Above the locale options, the "English reference" choice allows using local files instead: select "Local files", then click on "Pick English files" to pick one or several English translations files (named `en_<translation group>.json`, as found in Strype's `src/localisation/en` folder).
+Picked files can be removed with ❌ before validating the locale. \
+\
+When local files are used, __they replace the whole English reference__: only the translation groups of the picked files are available in the tool. \
+The translations of the selected locale are still retrieved from the Strype GitHub repository (option 1), or from the files (option 3).
+
 ### Understanding the translations display interface
 The translations display interface (or box) is the main part of the tool. It shows all the localisable content Strype requires and the associated translation strings in the current locale. \
 Missing _and_ existing translations show in this box.
