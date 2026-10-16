@@ -2,7 +2,7 @@
   <div class="generate-files-container functional-container">
     <span class="close-btn" @click="onCloseStatusDisplay">×</span>
     <input id="keepOrphanTranslationsCheckBox" type="checkbox" v-model="keepOrphanTranslations" />
-    <label for="keepOrphanTranslationsCheckBox">Keep translations whose key no longer exists in English ("orphan translations")</label>
+    <label for="keepOrphanTranslationsCheckBox">{{ `Keep translations whose key no longer exists in English${(appStore.isEnglishReferenceFromLocalFiles) ? " (as given by the local files)" : ""} ("orphan translations")` }}</label>
     <br/><br/>
     <span>Translation group to generate:</span>
     <div v-for="tg in appStore.translationGroups" :key="'generate_for_'+tg" class="translation-groups-container">

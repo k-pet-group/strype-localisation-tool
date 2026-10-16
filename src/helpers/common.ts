@@ -20,6 +20,33 @@ export const isLocaleNameValid = (locale: string): boolean => {
     return /^[a-z]{2}$/.test(locale.toLowerCase());
 };
 
+/* Part handling the translations files picked by the user */
+export const parseTranslationsFileName = (fileName: string): {locale: string, translationGroup: string} => {
+    // A Strype translations file name is formatted as "<locale>_<translation group>.json"
+    const fileNameSplits = fileName.replace(/\.json$/,"").split("_");
+    if(fileNameSplits.length != 2 || !fileName.endsWith(".json")){
+        throw new Error(`The file name "${fileName}" isn't following the format expected for a Strype localisation file!`);
+    }
+    return {locale: fileNameSplits[0].toLowerCase(), translationGroup: fileNameSplits[1]};
+};
+
+export const readFileContent = (file: File): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onload =  (evt) => {
+            const text = evt.target?.result;
+            if(typeof text === "string"){
+                resolve(text);
+            }
+            else {
+                reject("the file content cannot be interpreted as a JSON content file");
+            }
+        };
+        fileReader.readAsText(file, "UTF-8");
+    });
+};
+/* end of part about translations files picked by the user */
+
 
 /* Part handling the conversion between the translation JSON files and the internal tree object
  * used in this app (that also carries information the node visibility in the UI).

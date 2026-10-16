@@ -15,7 +15,7 @@
             <div class="values-container">
                 <div>
                     <span v-if="hasTranslationLabelNodeChildren">This node has children: get inside to find a translation.</span>
-                    <span v-else>English (reference): </span>
+                    <span v-else>{{ `English (${(appStore.isEnglishReferenceFromLocalFiles) ? "local reference" : "reference"}): ` }}</span>
                     <br/>
                     <span :class="{invisible: hasTranslationLabelNodeChildren}">{{ 'Translation for '+appStore.locale + ':'}}</span>
                 </div>                    
