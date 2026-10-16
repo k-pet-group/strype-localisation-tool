@@ -83,7 +83,7 @@ export default Vue.extend({
             let toReturn: TranslationLabelsTree | string = treeNodeVal;
             if(typeof treeNodeVal == "string"){
                 // Transform the "\n" input to a visual indicator (because it doesn't show in HTML)
-                toReturn = (treeNodeVal as string).replace("\n", "⏎");
+                toReturn = (treeNodeVal as string).replace(/\n/g, "⏎");
             }
             return toReturn;
         },
@@ -129,7 +129,7 @@ export default Vue.extend({
                 let toReturn: TranslationLabelsTree | string = treeNodeVal;
                 if(typeof treeNodeVal == "string"){
                     // Transform the "\n" input to this visual indicator: ⏎ (because it doesn't show in HTML)
-                    toReturn = (treeNodeVal as string).replace("\n", "⏎");
+                    toReturn = (treeNodeVal as string).replace(/\n/g, "⏎");
                 }
                 return toReturn;
             },

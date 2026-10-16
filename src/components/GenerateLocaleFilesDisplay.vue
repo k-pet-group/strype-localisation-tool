@@ -70,7 +70,7 @@ export default Vue.extend({
                     }
                     else{
                         // We have a string value that is not empty, we make sure we remove all the ⏎ we added inside the labels for visibility
-                        treeAtLevel[oneTreeLevelKey].value = (treeAtLevel[oneTreeLevelKey].value as string).replace("⏎", "\n");
+                        treeAtLevel[oneTreeLevelKey].value = (treeAtLevel[oneTreeLevelKey].value as string).replace(/⏎/g, "\n");
                     }
                 });                
             };
