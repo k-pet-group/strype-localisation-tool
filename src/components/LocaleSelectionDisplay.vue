@@ -16,7 +16,7 @@
         <span>{{ `${(isLocalTestVersion) ? "Optionally" : "OR"} use some existing translations files` }}</span>
         <button id="pickTranslationsFilesButton" @click="pickTranslationFiles">Pick files</button>
         <br/>
-        <button id="validateLocaleButton" @click="validateLocale" :disabled="!canValidateLocale">OK</button>
+        <button id="validateLocaleButton" @click="validateLocale()" :disabled="!canValidateLocale">OK</button>
     </div>
 </template>
 
