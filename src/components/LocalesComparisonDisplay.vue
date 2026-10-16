@@ -20,9 +20,11 @@
                     <span :class="{invisible: hasTranslationLabelNodeChildren}">{{ 'Translation for '+appStore.locale + ':'}}</span>
                 </div>                    
                 <div class="values-translation-container">
-                    <span :class="{invisible: hasTranslationLabelNodeChildren}">{{ (hasTranslationLabelNodeChildren)? "" : currentEnglishLabelsTreeNodeVal }}</span>
+                    <!-- The leading/trailing whitespaces are wrapped in a highlighted span so they are visible (keep this on one line to avoid extra whitespaces in the rendering) -->
+                    <span :class="{invisible: hasTranslationLabelNodeChildren}" class="english-value"><template v-if="!hasTranslationLabelNodeChildren"><span v-if="englishEdgeWhitespaces.leading.length > 0" class="edge-ws" :title="describeEdgeWhitespaces(englishEdgeWhitespaces.leading, 'leading')">{{ englishEdgeWhitespaces.leading }}</span>{{ englishEdgeWhitespaces.core }}<span v-if="englishEdgeWhitespaces.trailing.length > 0" class="edge-ws" :title="describeEdgeWhitespaces(englishEdgeWhitespaces.trailing, 'trailing')">{{ englishEdgeWhitespaces.trailing }}</span></template></span>
                     <input :class="{reduced: hasTranslationLabelNodeChildren}" type="text" v-model="currentLocaleLabelsTreeNodeVal"
                         @keydown="onUpDownKeyInTranslationInput" :readonly="hasTranslationLabelNodeChildren"/>
+                    <span v-for="edgeWhitespacesWarning in edgeWhitespacesWarnings" :key="edgeWhitespacesWarning" class="edge-ws-warning">&#9888; {{ edgeWhitespacesWarning }}</span>
                 </div>
             </div>
             <div class="labels-container">
@@ -37,7 +39,7 @@ import { useStore } from "@/stores/store";
 import { mapStores } from "pinia";
 import TranslationTreeDisplay from "@/components/TranslationTreeDisplay.vue";
 import type TranslationLabelTreeNodeComponent from "@/components/TranslationLabelTreeNode.vue";
-import { CustomEventTypes, getNormalisedVisibleTreeNodeRefsKVP, getReferencedTranslationTreeDisplayComponent } from "@/helpers/common";
+import { CustomEventTypes, describeEdgeWhitespaces, getNormalisedVisibleTreeNodeRefsKVP, getReferencedTranslationTreeDisplayComponent, splitEdgeWhitespaces, type EdgeWhitespacesSplitValue } from "@/helpers/common";
 import type { TranslationLabelsTree } from "@/helpers/types";
 import Vue from "vue";
 
@@ -59,7 +61,7 @@ export default Vue.extend({
         ...mapStores(useStore),
 
         currentTranslationGroup: {
-            get() {
+            get(): string {
                 return this.appStore.currentTranslationGroup;
             },
             set(value: string) {          
@@ -67,7 +69,7 @@ export default Vue.extend({
             },
         },
 
-        currentEnglishLabelsTreeNodeVal() {
+        currentEnglishLabelsTreeNodeVal(): TranslationLabelsTree | string {
             if(this.appStore.currentTranslationLabelKeyPath.length == 0){
                 return "";
             }
@@ -86,12 +88,33 @@ export default Vue.extend({
             return toReturn;
         },
 
-        hasTranslationLabelNodeChildren(): boolean {       
+        hasTranslationLabelNodeChildren(): boolean {
             return (typeof this.currentEnglishLabelsTreeNodeVal != "string");
         },
 
+        englishEdgeWhitespaces(): EdgeWhitespacesSplitValue {
+            return splitEdgeWhitespaces((this.hasTranslationLabelNodeChildren) ? "" : this.currentEnglishLabelsTreeNodeVal as string);
+        },
+
+        edgeWhitespacesWarnings(): string[] {
+            // We warn the user if the whitespaces at the edges of the translation don't match those of the English reference.
+            // (We don't check empty translations: they are already flagged as not translated.)
+            if(this.hasTranslationLabelNodeChildren || typeof this.currentLocaleLabelsTreeNodeVal != "string" || this.currentLocaleLabelsTreeNodeVal.length == 0){
+                return [];
+            }
+
+            const localeEdgeWhitespaces = splitEdgeWhitespaces(this.currentLocaleLabelsTreeNodeVal);
+            const warnings = [] as string[];
+            (["leading", "trailing"] as const).forEach((position) => {
+                if(this.englishEdgeWhitespaces[position] != localeEdgeWhitespaces[position]){
+                    warnings.push(`The reference has ${describeEdgeWhitespaces(this.englishEdgeWhitespaces[position], position)}, the translation has ${describeEdgeWhitespaces(localeEdgeWhitespaces[position], position)}.`);
+                }
+            });
+            return warnings;
+        },
+
         currentLocaleLabelsTreeNodeVal: {
-            get() {
+            get(): TranslationLabelsTree | string {
                 // NOTE: the translations tree is already prepared for the locale with the missing keys and empty values before being used.
                 if(this.appStore.currentTranslationLabelKeyPath.length == 0){
                     return "";
@@ -131,6 +154,7 @@ export default Vue.extend({
     data: function() {
         return {
             CustomEventTypes, // Just to be able to use in template
+            describeEdgeWhitespaces, // Just to be able to use in template
             currentTranslationLabelNodePath: "",
             onlyShowUntranslatedNodes: false,
         };
@@ -241,6 +265,24 @@ export default Vue.extend({
 
 .invisible {
   color: transparent;
+}
+
+.english-value {
+    /* Keep the whitespaces as they are, so successive spaces inside the value are visible too */
+    white-space: pre-wrap;
+}
+
+.edge-ws {
+    white-space: pre;
+    background-color: rgb(198, 219, 252);
+    outline: rgb(100, 146, 247) 1px dotted;
+    cursor: help;
+}
+
+.edge-ws-warning {
+    color: rgb(30, 80, 190);
+    font-size: 0.9em;
+    margin-top: 2px;
 }
 </style>
 

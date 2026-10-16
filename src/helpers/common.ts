@@ -120,3 +120,23 @@ export const cleanTranslationsLabelTreeRefs = (): Promise<void> => {
     });    
 };
 /* end dealing with refs */
+/* Part for handling the whitespaces at the edges of a label value (they are invisible in HTML) */
+export interface EdgeWhitespacesSplitValue {
+    leading: string,
+    core: string,
+    trailing: string,
+}
+
+export const splitEdgeWhitespaces = (value: string): EdgeWhitespacesSplitValue => {
+    // Note: the "\n" have been replaced by ⏎ before we get here, so they are not considered as whitespaces.
+    const match = value.match(/^(\s*)([\s\S]*?)(\s*)$/) as RegExpMatchArray;
+    return {leading: match[1], core: match[2], trailing: match[3]};
+};
+
+export const describeEdgeWhitespaces = (whitespaces: string, position: "leading" | "trailing"): string => {
+    // Gives a human readable description, like "2 trailing spaces" (if there are other whitespaces than spaces, we use a generic term)
+    const count = whitespaces.length;
+    const term = (/^ *$/.test(whitespaces)) ? "space" : "whitespace character";
+    return `${count} ${position} ${term}${(count != 1) ? "s" : ""}`;
+};
+/* end dealing with whitespaces at the edges */
