@@ -76,8 +76,11 @@ export default Vue.extend({
             };
 
             // Keeping the requested translation groups:
+            // (the translations may contain groups that are not in the English reference, for example when the English reference
+            // comes from local files that don't cover all the groups: they are not listed for generation so we discard them.)
             for(const translationGroup in this.appStore.translations){
-                if(!(document.getElementById(this.getTranslationGroupCheckBoxId(translationGroup)) as HTMLInputElement).checked){
+                if(!this.appStore.translationGroups.includes(translationGroup)
+                    || !(document.getElementById(this.getTranslationGroupCheckBoxId(translationGroup)) as HTMLInputElement).checked){
                     delete treeCopy[translationGroup];
                 }
                 else{
