@@ -9,22 +9,22 @@ The following guide explains how to use this tool.
 
 ## Purpose of the tool
 
-Strype relies on translations files to be displayed in different locales.
-These files are JSON files that Strype parse to retrieve the translations for some given keys.\
-Therefore, when Strype is updated, the translations files can become outdated and seeing what to change from a previous version of the files can be daunting.
+Strype relies on translation files to be displayed in different locales.
+These files are JSON files that Strype parses to retrieve the translations for some given keys.\
+Therefore, when Strype is updated, the translation files can become outdated and seeing what to change from a previous version of the files can be daunting.
 
 We have designed this tool **to help translators to**
-- see which translations are missing in an existing translations file (for a given locale already supported by Strype),
+- see which translations are missing in an existing translation file (for a given locale already supported by Strype),
 - start off writing translations for a new locale not supported by Strype yet.
 
 >[!IMPORTANT]
->The output of the tool is the translations files for the current locale the translators are working on.
+>The output of the tool is the translation files for the current locale the translators are working on.
 
-For more details about how Strype handles the translations files, please consult [this documentation](https://github.com/k-pet-group/Strype/tree/main/docs/translation).
+For more details about how Strype handles the translation files, please consult [this documentation](https://github.com/k-pet-group/Strype/tree/main/docs/translation).
 
 > [!CAUTION]
 > Translators must bear in mind that their changes __will NOT be saved__ when the tool is closed. \
-> Before leaving the tool, always [generate the output files](#generate-the-translations-files) to save changes. \
+> Before leaving the tool, always [generate the output files](#generate-the-translation-files) to save changes. \
 > These changes can later be [loaded in the tool](#locale-selection) in another session. 
 
 ## Manual
@@ -32,7 +32,7 @@ For more details about how Strype handles the translations files, please consult
 ### Access to the tool
 This tool is accessible online [here](https://strype.org/localisation-tool/).
 
-When the page loads, the tool attempts to retrieve some information against the Strype's GitHub repository.\
+When the page loads, the tool attempts to retrieve some information from Strype's GitHub repository.\
 Progress is shown in the status information box. Translators can continue towards the next step when the status box shows this status:\
 <img src="./doc-images/status-ready-for-locale-selection.png" width="300" >
 
@@ -43,7 +43,7 @@ Options are:\
 <img src="./doc-images/locale-selection.png" width="400" >
 - 1: selecting a locale already supported by Strype,
 - 2: typing a new locale that Strype does not support yet (as a two-letter language code, different from the existing locales available in option 1),
-- 3: getting the locale and the translations from existing files, the files' name and content must comply with the convention used by Strype for the translations file.
+- 3: getting the locale and the translations from existing files, the files' name and content must comply with the convention used by Strype for the translation file.
 
 >[!TIP]
 >Option 3 is useful when you need to load work in progress from the files.\
@@ -51,7 +51,7 @@ When clicking on the "Pick files" button, the locale selection box will be repla
 __The locale will be detected in the first file upload's name__. \
 Translators can upload files for the translation target group they want. \
 Confirmation of the uploads will trigger the tool to proceed with the actions described below, but the uploaded file content will be used in the translations. \
-Therefore, it the responsability of the translators to __make sure their uploaded files' content will not overwrite translations already in Strype that could have been recently updated by someone else__.
+Therefore, it the responsibility of the translators to __make sure their uploaded files' content will not overwrite translations already in Strype that could have been recently updated by someone else__.
 
 When a locale is selected with option 1, the tool will retrieve the translations from the Strype GitHub repository and show progress in the status box.
 
@@ -64,7 +64,7 @@ For all options, the tool is ready to show the translations (in the [translation
 
 >[!NOTE]
 **By default, the English translations used as the reference are retrieved from the main branch of the Strype GitHub repository**.
-Above the locale options, the "English reference" choice allows using local files instead: select "Local files", then click on "Pick English files" to pick one or several English translations files (named `en_<translation group>.json`, as found in Strype's `src/localisation/en` folder).
+Above the locale options, the "English reference" choice allows using local files instead: select "Local files", then click on "Pick English files" to pick one or several English translation files (named `en_<translation group>.json`, as found in Strype's `src/localisation/en` folder).
 Picked files can be removed with ❌ before validating the locale. \
 \
 When local files are used, __they replace the whole English reference__: only the translation groups of the picked files are available in the tool. \
@@ -87,7 +87,7 @@ This is a critical point to understand for using the tool.
 This area hosts several controls to display the translations:
 - the list of the translation groups available - a translation group is a set of translations; whenever a translation group is set, the corresponding translations are displayed in [the translations tree area](#translations-tree-area-3),
 - the "Only show (new) entries that are not translated" checkbox - acts as a filter: when checked, only the translations that are empty (or node of translations that contain any empty child) show in [the translations tree area](#translations-tree-area-3),
-- the "Generate translation files" button (see [related section](#generate-the-translations-files)).
+- the "Generate translation files" button (see [related section](#generate-the-translation-files)).
 
 >[!TIP]
 >This filter is particularly useful when translators only want to work on missing translations.
@@ -113,10 +113,10 @@ This area displays the translations tree - each tree node is selectable (see [ho
 The translation node currently selected is indicated by an arrow and a blue background like this: \
 <img src="./doc-images/translation-node-selected.png" >
 
-A translation node containing other translation node is indicated by a [+] or [-] like this: \
+A translation node containing other translation nodes is indicated by a [+] or [-] like this: \
 <img src="./doc-images/translation-node-container.png" >
 
-A colour scheme on the translation nodes is in place to help translators identified missing translations:
+A colour scheme on the translation nodes is in place to help translators identify missing translations:
 - a red background indicates an empty translation,
 - an orange background indicates a translation node containing *at least one* missing translation node.
 
@@ -124,7 +124,7 @@ A colour scheme on the translation nodes is in place to help translators identif
 
 #### Interaction
 Interacting with the [translation tree](#translations-tree-area-3) can be done with
-- the mouse: clicking on a translation node selects it, clicking on the expand/collapse indicator shows/hides deeper translation nodes),
+- the mouse: clicking on a translation node selects it, clicking on the expand/collapse indicator shows/hides deeper translation nodes,
 - the keyboard.
 
 >[!TIP]
@@ -133,14 +133,14 @@ Interacting with the [translation tree](#translations-tree-area-3) can be done w
 
 These keys are used for interaction:
 - ↓ and ↑: select the next/previous translation node of the translation tree,
-- → and ←: expand/collapse a translation node that contains other translation node - if the current node is a translation node without children (i.e. a node that expects a translation string), these keys will select the next/previous translation node instead  and they will __not__ be effective in the translation string input (to allow moving the text caret in the input...)
+- → and ←: expand/collapse a translation node that contains other translation nodes - if the current node is a translation node without children (i.e. a node that expects a translation string), these keys will select the next/previous translation node instead  and they will __not__ be effective in the translation string input (to allow moving the text caret in the input...)
 - ⇟ (page down) and ⇞ (page up): scroll down/up the translation tree (_not effective in the translation string input_)
 - ⤓ (end) and ⤒ (home): jump to the bottom/top of the translation tree (_not effective in the translation string input_)
 
-### Generate the translations files
-When ready to generate the translations files, click on the "Generate translations files" button at the top of the [translations display box](#controls-area-1).
+### Generate the translation files
+When ready to generate the translation files, click on the "Generate translation files" button at the top of the [translations display box](#controls-area-1).
 
-The translations display box and the status box will temporarily hide to make place for the file generation box as shown below:\
+The translations display box and the status box will temporarily hide to make room for the file generation box as shown below:\
 <img src="./doc-images/generate-files.png" width="600">
 
 The checkbox "Keep translations whose key no longer exists in English" is __not checked__ by default.
@@ -153,5 +153,5 @@ The files will be generated with the naming convention expected by Strype (e.g. 
 *Any empty translation (that is, a translation set to an empty string or a translation key containing only empty translations) will be discarded.*
 
 >[!NOTE]
->When translators want the translations to be added to Strype, they can send us the files or create a merge request in the Strype project's main branch.\
+>When translators want the translations to be added to Strype, they can send us the files or create a pull request in the Strype project's main branch.\
 See [this documentation](https://github.com/k-pet-group/Strype/tree/main/docs/translation) for more details.
